@@ -1,0 +1,21 @@
+# Requisitos del Sistema Experto de Odontología
+
+# Lógica difusa
+scikit-fuzzy==0.4.2
+numpy==1.24.3
+
+# Generación de reportes PDF
+reportlab==4.0.7
+Pillow==10.1.0
+
+# Gráficos y visualización
+matplotlib==3.8.2
+
+# Utilidades
+python-dateutil==2.8.2
+
+# Testing (opcional)
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Nota: tkinter viene incluido con Python, no necesita instalación
