@@ -3,17 +3,17 @@ Motor de Diagnóstico
 Coordina el uso de reglas crisp y fuzzy para generar diagnósticos
 """
 
-from ..knowledge_base import (
+from ..base_conocimiento import (
     evaluate_crisp_rules,
     evaluate_fuzzy_rules,
     get_diagnostico_info,
     get_recomendaciones
 )
-from .forward_chaining import ForwardChainingEngine, apply_conflict_resolution
-from ..knowledge_base.crisp_rules import get_all_rules
+from .encadenamiento_adelante import ForwardChainingEngine, apply_conflict_resolution
+from ..base_conocimiento.reglas_crisp import get_all_rules
 
 
-class DiagnosisEngine:
+class MotorDiagnostico:
     """
     Motor de diagnóstico que combina reglas crisp y fuzzy
     """

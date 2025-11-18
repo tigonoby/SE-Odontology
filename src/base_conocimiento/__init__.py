@@ -2,7 +2,7 @@
 Módulo de inicialización de la base de conocimientos
 """
 
-from .facts import (
+from .hechos import (
     SINTOMAS,
     DIAGNOSTICOS,
     RECOMENDACIONES,
@@ -11,13 +11,13 @@ from .facts import (
     get_recomendaciones
 )
 
-from .crisp_rules import (
+from .reglas_crisp import (
     Rule,
     get_all_rules,
     evaluate_crisp_rules
 )
 
-from .fuzzy_rules import (
+from .reglas_difusas import (
     FuzzyDiagnosisSystem,
     get_fuzzy_system,
     evaluate_fuzzy_rules

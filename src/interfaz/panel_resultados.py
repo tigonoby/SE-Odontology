@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk, scrolledtext
 
 
-class ResultsPanel(tk.Frame):
+class PanelResultados(tk.Frame):
     """Panel para mostrar los resultados del diagnóstico con diseño mejorado"""
     
     def __init__(self, parent):

@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 
-class SymptomsPanel(ttk.Frame):
+class PanelSintomas(ttk.Frame):
     """Panel para capturar los síntomas del paciente con diseño mejorado"""
     
     def __init__(self, parent):

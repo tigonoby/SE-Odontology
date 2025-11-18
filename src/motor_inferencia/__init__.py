@@ -2,13 +2,13 @@
 Módulo de inicialización del motor de inferencia
 """
 
-from .forward_chaining import (
+from .encadenamiento_adelante import (
     ForwardChainingEngine,
     ConflictResolution,
     apply_conflict_resolution
 )
 
-from .fuzzy_logic import (
+from .logica_difusa import (
     FuzzySet,
     TriangularMF,
     TrapezoidalMF,
@@ -18,7 +18,7 @@ from .fuzzy_logic import (
     create_fuzzy_diagnosis_system
 )
 
-from .diagnosis import DiagnosisEngine
+from .diagnostico import MotorDiagnostico
 
 __all__ = [
     'ForwardChainingEngine',
@@ -31,5 +31,5 @@ __all__ = [
     'FuzzyRule',
     'FuzzyInferenceSystem',
     'create_fuzzy_diagnosis_system',
-    'DiagnosisEngine'
+    'MotorDiagnostico'
 ]

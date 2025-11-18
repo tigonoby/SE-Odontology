@@ -14,7 +14,7 @@ from reportlab.lib import colors
 from reportlab.lib.colors import HexColor
 
 
-class ReportGenerator:
+class GeneradorReportes:
     """Generador de reportes PDF para diagnósticos"""
     
     def __init__(self):

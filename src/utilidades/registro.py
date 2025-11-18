@@ -8,7 +8,7 @@ import os
 from datetime import datetime
 
 
-class Logger:
+class Registro:
     """Clase para manejar el logging del sistema"""
     
     def __init__(self, log_dir='logs'):
