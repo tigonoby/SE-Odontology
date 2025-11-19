@@ -99,6 +99,9 @@ class PanelResultados(tk.Frame):
             justify='center'
         )
         advice.pack(pady=5)
+        
+        # Instrucciones de niveles de confianza
+        self._add_confidence_guide(self.initial_container)
     
     def display_results(self, diagnosis_result):
         """
@@ -148,6 +151,9 @@ class PanelResultados(tk.Frame):
             pady=15
         )
         urgencia_label.pack()
+        
+        # === GUÍA DE NIVELES DE CONFIANZA ===
+        self._add_confidence_guide(container)
         
         # === TARJETA DE DIAGNÓSTICO PRINCIPAL ===
         diag_card = tk.Frame(container, bg='white', relief='solid', bd=1, highlightbackground=self.colors['border'])
@@ -448,6 +454,66 @@ class PanelResultados(tk.Frame):
             'mensaje_urgencia': urgencia_msg.get(urgencia, ''),
             'num_alternativos': diagnosis_result.get('num_diagnosticos', 1) - 1
         }
+    
+    def _add_confidence_guide(self, parent):
+        """Agrega guía de interpretación de niveles de confianza"""
+        # Frame contenedor
+        guide_frame = tk.Frame(parent, bg=self.colors['light'], relief='solid', borderwidth=1)
+        guide_frame.pack(pady=20, padx=40, fill='x')
+        
+        # Título
+        title = tk.Label(
+            guide_frame,
+            text="📖 Guía de Niveles de Confianza",
+            font=('Segoe UI', 11, 'bold'),
+            bg=self.colors['light'],
+            fg=self.colors['dark']
+        )
+        title.pack(pady=(10, 5))
+        
+        # Niveles
+        levels = [
+            ("90-100%", "Sistema CASI SEGURO", "→ Vaya al dentista YA", '#C73E1D'),
+            ("70-89%", "Sistema BASTANTE SEGURO", "→ Consulte pronto", '#F18F01'),
+            ("50-69%", "Sistema SOSPECHA esto", "→ Haga chequeo", '#F9C80E'),
+            ("30-49%", "Sistema tiene DUDAS", "→ Posible problema inicial", '#2E86AB'),
+            ("<30%", "Sistema NO ESTÁ SEGURO", "→ Todo parece normal", '#06A77D')
+        ]
+        
+        for percentage, status, action, color in levels:
+            level_frame = tk.Frame(guide_frame, bg=self.colors['light'])
+            level_frame.pack(fill='x', padx=15, pady=2)
+            
+            percent_label = tk.Label(
+                level_frame,
+                text=percentage,
+                font=('Segoe UI', 9, 'bold'),
+                bg=self.colors['light'],
+                fg=color,
+                width=10,
+                anchor='w'
+            )
+            percent_label.pack(side='left', padx=5)
+            
+            status_label = tk.Label(
+                level_frame,
+                text=f"{status} {action}",
+                font=('Segoe UI', 9),
+                bg=self.colors['light'],
+                fg=self.colors['dark'],
+                anchor='w'
+            )
+            status_label.pack(side='left', padx=5)
+        
+        # Nota final
+        note = tk.Label(
+            guide_frame,
+            text="Este sistema es una herramienta de apoyo. Siempre consulte a un profesional.",
+            font=('Segoe UI', 8, 'italic'),
+            bg=self.colors['light'],
+            fg='gray'
+        )
+        note.pack(pady=(5, 10))
     
     def clear(self):
         """Limpia el panel de resultados"""

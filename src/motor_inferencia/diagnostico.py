@@ -100,60 +100,144 @@ class MotorDiagnostico:
         """
         fallback_results = []
         
-        # Analizar intensidad de dolor
+        # Extraer síntomas
         intensidad_dolor = facts.get('intensidad_dolor', 0)
         sensibilidad_frio = facts.get('sensibilidad_frio', 0)
         sensibilidad_calor = facts.get('sensibilidad_calor', 0)
+        sensibilidad_dulce = facts.get('sensibilidad_dulce', 0)
         inflamacion_encias = facts.get('inflamacion_encias', 0)
         dolor_masticar = facts.get('dolor_masticar', 0)
+        dolor_nocturno = facts.get('dolor_nocturno', 0)
+        dolor_presion = facts.get('dolor_presion', 0)
         
-        # Calcular puntuación total de síntomas
-        total_score = (intensidad_dolor + sensibilidad_frio + sensibilidad_calor + 
-                      inflamacion_encias + dolor_masticar) / 50.0
+        # Variables categóricas importantes
+        caries_visible = facts.get('caries_visible', 'no')
+        mancha_oscura = facts.get('mancha_oscura', 'no')
+        hinchazon_cara = facts.get('hinchazon_cara', 'no')
+        sangrado_encias = facts.get('sangrado_encias', 'no')
+        movilidad_dental = facts.get('movilidad_dental', 'no')
         
-        # Si hay dolor significativo (>= 5 en cualquier escala)
-        if intensidad_dolor >= 5 or sensibilidad_frio >= 5 or sensibilidad_calor >= 5:
-            if sensibilidad_frio >= sensibilidad_calor:
-                fallback_results.append({
-                    'diagnostico': 'caries_inicial',
-                    'confianza': min(0.3 + (sensibilidad_frio / 20), 0.6),
-                    'regla': 'Análisis de Síntomas - Alta sensibilidad',
-                    'tipo': 'fallback'
-                })
-            else:
-                fallback_results.append({
-                    'diagnostico': 'pulpitis_reversible',
-                    'confianza': min(0.3 + (sensibilidad_calor / 20), 0.6),
-                    'regla': 'Análisis de Síntomas - Sensibilidad al calor',
-                    'tipo': 'fallback'
-                })
+        # Análisis por prioridad de gravedad
         
-        # Si hay inflamación de encías
-        if inflamacion_encias >= 4:
+        # 1. ABSCESO/INFECCIÓN (Prioridad máxima)
+        if hinchazon_cara == 'si' or facts.get('pus_visible') == 'si' or facts.get('fiebre') == 'si':
+            confianza = 0.7 if hinchazon_cara == 'si' else 0.65
+            if intensidad_dolor >= 7:
+                confianza = min(confianza + 0.15, 0.95)
             fallback_results.append({
-                'diagnostico': 'gingivitis',
-                'confianza': min(0.3 + (inflamacion_encias / 20), 0.7),
-                'regla': 'Análisis de Síntomas - Inflamación gingival',
-                'tipo': 'fallback'
+                'diagnostico': 'absceso',
+                'confianza': confianza,
+                'regla': 'Análisis Inteligente - Signos de infección detectados',
+                'tipo': 'fallback_inteligente'
+            })
+            return fallback_results  # Retornar inmediatamente por gravedad
+        
+        # 2. PULPITIS (Dolor intenso con sensibilidad al calor)
+        if intensidad_dolor >= 7 or (dolor_nocturno >= 6 and sensibilidad_calor >= 6):
+            confianza = 0.6 + (intensidad_dolor / 30) + (sensibilidad_calor / 40)
+            confianza = min(confianza, 0.85)
+            fallback_results.append({
+                'diagnostico': 'pulpitis',
+                'confianza': confianza,
+                'regla': 'Análisis Inteligente - Dolor severo y características de pulpitis',
+                'tipo': 'fallback_inteligente'
             })
         
-        # Si hay dolor al masticar
-        if dolor_masticar >= 5:
+        # 3. CARIES (Caries visible o mancha + sensibilidad)
+        if caries_visible == 'si' or (mancha_oscura == 'si' and (sensibilidad_dulce >= 4 or sensibilidad_frio >= 4)):
+            base_conf = 0.75 if caries_visible == 'si' else 0.6
+            confianza = base_conf + (sensibilidad_dulce / 40)
+            confianza = min(confianza, 0.88)
+            fallback_results.append({
+                'diagnostico': 'caries',
+                'confianza': confianza,
+                'regla': 'Análisis Inteligente - Evidencia visual de caries',
+                'tipo': 'fallback_inteligente'
+            })
+        
+        # 4. PERIODONTITIS (Movilidad dental + sangrado)
+        if movilidad_dental in ['moderado', 'severo'] or (movilidad_dental == 'leve' and sangrado_encias in ['moderado', 'severo']):
+            confianza = 0.65 + (inflamacion_encias / 30)
+            confianza = min(confianza, 0.82)
             fallback_results.append({
                 'diagnostico': 'periodontitis',
-                'confianza': min(0.3 + (dolor_masticar / 20), 0.6),
-                'regla': 'Análisis de Síntomas - Dolor funcional',
-                'tipo': 'fallback'
+                'confianza': confianza,
+                'regla': 'Análisis Inteligente - Signos de enfermedad periodontal',
+                'tipo': 'fallback_inteligente'
             })
         
-        # Si no hay síntomas significativos, sugerir evaluación preventiva
-        if not fallback_results:
+        # 5. GINGIVITIS (Inflamación de encías sin movilidad)
+        elif inflamacion_encias >= 5 or sangrado_encias in ['moderado', 'severo']:
+            confianza = 0.55 + (inflamacion_encias / 25)
+            confianza = min(confianza, 0.8)
             fallback_results.append({
-                'diagnostico': 'evaluacion_general',
-                'confianza': 0.5,
-                'regla': 'Recomendación Preventiva',
-                'tipo': 'fallback'
+                'diagnostico': 'gingivitis',
+                'confianza': confianza,
+                'regla': 'Análisis Inteligente - Inflamación gingival',
+                'tipo': 'fallback_inteligente'
             })
+        
+        # 6. SENSIBILIDAD (Sensibilidad sin caries visible)
+        if sensibilidad_frio >= 5 and caries_visible != 'si' and intensidad_dolor <= 6:
+            confianza = 0.5 + (sensibilidad_frio / 25)
+            confianza = min(confianza, 0.75)
+            fallback_results.append({
+                'diagnostico': 'sensibilidad',
+                'confianza': confianza,
+                'regla': 'Análisis Inteligente - Hipersensibilidad dentinaria',
+                'tipo': 'fallback_inteligente'
+            })
+        
+        # 7. CARIES INICIAL (Sensibilidad leve sin otros signos)
+        if (sensibilidad_dulce >= 3 or sensibilidad_frio >= 3) and intensidad_dolor >= 2 and intensidad_dolor < 7:
+            if not fallback_results:  # Solo si no hay otros diagnósticos
+                confianza = 0.45 + ((sensibilidad_dulce + sensibilidad_frio) / 40)
+                confianza = min(confianza, 0.68)
+                fallback_results.append({
+                    'diagnostico': 'caries_inicial',
+                    'confianza': confianza,
+                    'regla': 'Análisis Inteligente - Posible inicio de caries',
+                    'tipo': 'fallback_inteligente'
+                })
+        
+        # 8. Evaluación general (solo si realmente no hay síntomas)
+        if not fallback_results:
+            # Verificar si hay ALGÚN síntoma
+            sintomas_presentes = (
+                intensidad_dolor > 0 or sensibilidad_frio > 0 or sensibilidad_calor > 0 or
+                sensibilidad_dulce > 0 or inflamacion_encias > 0 or dolor_masticar > 0 or
+                dolor_nocturno > 0 or dolor_presion > 0
+            )
+            
+            if sintomas_presentes:
+                # Hay síntomas pero son muy leves
+                max_sintoma = max(intensidad_dolor, sensibilidad_frio, sensibilidad_calor,
+                                 sensibilidad_dulce, inflamacion_encias, dolor_masticar,
+                                 dolor_nocturno, dolor_presion)
+                
+                if max_sintoma >= 2:
+                    confianza = 0.4 + (max_sintoma / 30)
+                    fallback_results.append({
+                        'diagnostico': 'caries_inicial',
+                        'confianza': min(confianza, 0.6),
+                        'regla': 'Análisis Inteligente - Síntomas leves detectados',
+                        'tipo': 'fallback_inteligente'
+                    })
+                else:
+                    fallback_results.append({
+                        'diagnostico': 'evaluacion_general',
+                        'confianza': 0.3,
+                        'regla': 'Recomendación - Evaluación preventiva sugerida',
+                        'tipo': 'fallback_preventivo'
+                    })
+            else:
+                # No hay síntomas en absoluto
+                fallback_results.append({
+                    'diagnostico': 'evaluacion_general',
+                    'confianza': 0.25,
+                    'regla': 'Recomendación - Sin síntomas significativos, evaluación preventiva',
+                    'tipo': 'fallback_preventivo'
+                })
         
         return fallback_results
     
